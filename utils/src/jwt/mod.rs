@@ -1,4 +1,5 @@
 pub mod auth_body;
+pub mod auth_payload;
 pub(crate) mod secret_key;
 
 use super::api_response::AuthError;
@@ -9,8 +10,8 @@ use axum_extra::{
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, Validation};
-use secret_key::KEYS;
 use serde::{Deserialize, Serialize};
+use secret_key::KEYS;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -32,10 +33,12 @@ impl Claims {
     }
 }
 
+#[derive(Deserialize)]
+pub struct JWT(pub Claims);
+
 #[axum::async_trait]
-impl<S> FromRequestParts<S> for Claims
-where
-    S: Send + Sync,
+impl<S> FromRequestParts<S> for JWT
+where S: Send + Sync
 {
     type Rejection = AuthError;
 
@@ -50,10 +53,4 @@ where
 
         Ok(token_data.claims)
     }
-}
-
-#[derive(Debug, Deserialize)]
-pub struct AuthPayload {
-    pub client_id: String,
-    pub client_secret: String,
 }

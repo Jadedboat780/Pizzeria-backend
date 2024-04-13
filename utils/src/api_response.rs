@@ -11,6 +11,7 @@ pub type ApiResult = Result<ApiResponse, ApiError>;
 pub enum ApiResponse {
     OK,
     OKWithJSON(Json<Value>),
+    OkResponse(Response),
     Created,
 }
 
@@ -36,6 +37,7 @@ impl IntoResponse for ApiResponse {
         match self {
             Self::OK => (StatusCode::OK).into_response(),
             Self::OKWithJSON(json) => (StatusCode::OK, json).into_response(),
+            Self::OkResponse(response) => (StatusCode::OK, response).into_response(),
             Self::Created => (StatusCode::CREATED).into_response(),
         }
     }

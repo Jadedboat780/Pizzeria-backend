@@ -1,8 +1,8 @@
 use axum::Json;
-use utils::api_response::AuthError;
 use utils::{
     encode_token,
-    jwt::{auth_body::AuthBody, AuthPayload},
+    jwt::{auth_body::AuthBody, auth_payload::AuthPayload},
+    api_response::AuthError
 };
 
 pub async fn authorize(Json(payload): Json<AuthPayload>) -> Result<Json<AuthBody>, AuthError> {
@@ -14,6 +14,6 @@ pub async fn authorize(Json(payload): Json<AuthPayload>) -> Result<Json<AuthBody
         return Err(AuthError::InvalidToken);
     }
 
-    let token = encode_token("hell".to_owned()).map_err(|_| AuthError::TokenCreation)?;
+    let token = encode_token(payload.client_id).map_err(|_| AuthError::TokenCreation)?;
     Ok(Json(AuthBody::new(token)))
 }

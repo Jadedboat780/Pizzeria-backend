@@ -1,16 +1,18 @@
-use std::result;
+use axum::{
+    extract::{Path, State},
+    Json
+};
+use serde_json::json;
+use utils::{
+    api_response::{ApiError, ApiResponse, ApiResult},
+    encryption::{hash_password, verify_password},
+    jwt::Claims
+};
+use crate::AppState;
 use crate::requests::user::{CreateUser, GetUserByEmail, GetUserByUsername, UpdateUser};
 use crate::user_query::{create_user, get_user_by_email, get_user_by_username, update_user};
-use crate::AppState;
-use axum::extract::{Path, State};
-use axum::Json;
-use serde_json::json;
-use utils::api_response::{ApiError, ApiResponse, ApiResult};
-use utils::encryption::{hash_password, verify_password};
-use utils::jwt::Claims;
 
 pub async fn search_user_by_email(
-    _claims: Claims,
     State(state): State<AppState>,
     Json(user_data): Json<GetUserByEmail>
 ) -> ApiResult {
@@ -25,7 +27,6 @@ pub async fn search_user_by_email(
 }
 
 pub async fn search_user_by_username(
-    _claims: Claims,
     State(state): State<AppState>,
     Json(user_data): Json<GetUserByUsername>
 ) -> ApiResult {
@@ -40,9 +41,8 @@ pub async fn search_user_by_username(
 }
 
 pub async fn new_user(
-    _claims: Claims,
     State(state): State<AppState>,
-    Json(json): Json<CreateUser>,
+    Json(json): Json<CreateUser>
 ) -> ApiResult {
     create_user(json, &state.db)
         .await
@@ -52,10 +52,9 @@ pub async fn new_user(
 }
 
 pub async fn patch_user(
-    _claims: Claims,
     Path(id): Path<i32>,
     State(state): State<AppState>,
-    Json(json): Json<UpdateUser>,
+    Json(json): Json<UpdateUser>
 ) -> ApiResult {
     update_user(id, json, &state.db)
         .await
