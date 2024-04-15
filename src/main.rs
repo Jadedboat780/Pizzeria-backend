@@ -5,10 +5,12 @@ mod requests;
 mod user_query;
 mod middleware;
 
+use std::{sync::Arc, time::Duration};
+use tokio::net::TcpListener;
 use axum::{routing, Router, middleware::from_fn};
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
-use tokio::net::TcpListener;
-use std::{sync::Arc, time::Duration};
+use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
+use utils::rate_limiting::custom_header_extractor::CustomHeaderExtractor;
 use endpoints::{
     hello_word, handler_404,
     user::{new_user, patch_user, search_user_by_email},
@@ -32,9 +34,21 @@ async fn db_pool() -> Pool<Postgres> {
         .expect("can`t connection database")
 }
 
+
 async fn init_router() -> Router {
     let pool = db_pool().await;
     let state: AppState = Arc::new(AppData { db: pool });
+    let governor_config = Box::new(
+        GovernorConfigBuilder::default()
+            .per_second(1)
+            .burst_size(50)
+            .key_extractor(CustomHeaderExtractor)
+            .finish()
+            .unwrap()
+    );
+    let governor_layer = GovernorLayer {
+        config: Box::leak(governor_config)
+    };
 
     Router::new()
         .route("/", routing::get(hello_word))
@@ -43,6 +57,7 @@ async fn init_router() -> Router {
         .route("/users/search/email", routing::post(search_user_by_email))
         .route("/users/search/username", routing::post(search_user_by_email))
         .with_state(state)
+        // .route_layer(governor_layer)
         .route_layer(from_fn(validate_jwt))
         .route("/authorize", routing::post(authorize))
         .fallback(handler_404)
@@ -59,6 +74,8 @@ async fn init_tcp_listener() -> TcpListener {
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
+    let pool = db_pool().await;
+    sqlx::migrate!().run(&pool).await.unwrap();
     let router = init_router().await;
     let listener = init_tcp_listener().await;
     axum::serve(listener, router).await.unwrap();

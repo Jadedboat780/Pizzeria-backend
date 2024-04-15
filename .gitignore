@@ -1,5 +1,5 @@
 target
 .idea
-.dockerignore
-Dockerfile
-docker-compose.yml
+utils/.dockerignore
+utils/Dockerfile
+utils/docker-compose.yml
