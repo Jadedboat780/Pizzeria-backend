@@ -7,10 +7,9 @@ mod middleware;
 
 use std::{sync::Arc, time::Duration};
 use tokio::net::TcpListener;
-use axum::{routing, Router, middleware::from_fn};
+use axum::{routing, Router, http::{self, Method}, middleware::from_fn};
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
-use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
-use utils::rate_limiting::custom_header_extractor::CustomHeaderExtractor;
+use tower_http::cors::{Any, CorsLayer};
 use endpoints::{
     hello_word, handler_404,
     user::{new_user, patch_user, search_user_by_email},
@@ -21,7 +20,7 @@ use middleware::jwt::validate_jwt;
 pub type AppState = Arc<AppData>;
 
 pub struct AppData {
-    pub db: PgPool,
+    pub db: PgPool
 }
 
 async fn db_pool() -> Pool<Postgres> {
@@ -34,21 +33,29 @@ async fn db_pool() -> Pool<Postgres> {
         .expect("can`t connection database")
 }
 
+async fn init_cors() -> CorsLayer {
+    CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::PATCH, Method::DELETE])
+        .allow_headers([http::header::CONTENT_TYPE])
+        .allow_origin(Any)
+}
+
 
 async fn init_router() -> Router {
     let pool = db_pool().await;
     let state: AppState = Arc::new(AppData { db: pool });
-    let governor_config = Box::new(
-        GovernorConfigBuilder::default()
-            .per_second(1)
-            .burst_size(50)
-            .key_extractor(CustomHeaderExtractor)
-            .finish()
-            .unwrap()
-    );
-    let governor_layer = GovernorLayer {
-        config: Box::leak(governor_config)
-    };
+    let cors = init_cors().await;
+    // let governor_config = Box::new(
+    //     GovernorConfigBuilder::default()
+    //         .per_second(1)
+    //         .burst_size(50)
+    //         .key_extractor(IpBasedKeyExtractor)
+    //         .finish()
+    //         .unwrap()
+    // );
+    // let governor_layer = GovernorLayer {
+    //     config: Box::leak(governor_config)
+    // };
 
     Router::new()
         .route("/", routing::get(hello_word))
@@ -57,10 +64,11 @@ async fn init_router() -> Router {
         .route("/users/search/email", routing::post(search_user_by_email))
         .route("/users/search/username", routing::post(search_user_by_email))
         .with_state(state)
-        // .route_layer(governor_layer)
         .route_layer(from_fn(validate_jwt))
         .route("/authorize", routing::post(authorize))
         .fallback(handler_404)
+        .layer(cors)
+        // .layer(governor_layer)
 }
 
 async fn init_tcp_listener() -> TcpListener {
