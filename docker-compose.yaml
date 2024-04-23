@@ -14,7 +14,6 @@ services:
   server:
     build:
       context: .
-    command: cargo run --release
     ports:
       - "3000:3000"
     depends_on:

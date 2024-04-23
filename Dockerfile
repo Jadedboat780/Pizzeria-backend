@@ -1,7 +1,7 @@
-FROM rust
+FROM rust:latest
 WORKDIR /app
 COPY . /app
-#RUN cargo install sqlx-cli && echo .env && sqlx migrate run
+CMD ["cargo", "run", "--release"]
 
 
 

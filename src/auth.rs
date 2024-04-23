@@ -1,19 +1,18 @@
 use axum::Json;
 use utils::{
-    encode_token,
-    jwt::{auth_body::AuthBody, auth_payload::AuthPayload},
-    api_response::AuthError
+    jwt::{encode_token, auth_models::{AuthPayload, AuthBody}},
+    api_response::{ApiResult, ApiError, AuthError}
 };
 
-pub async fn authorize(Json(payload): Json<AuthPayload>) -> Result<Json<AuthBody>, AuthError> {
+pub async fn authorize(Json(payload): Json<AuthPayload>) -> ApiResult<Json<AuthBody>> {
     if payload.client_id.is_empty() || payload.client_secret.is_empty() {
-        return Err(AuthError::MissingCredentials);
+        return Err(ApiError::AuthError(AuthError::MissingCredentials));
     }
 
     if payload.client_secret != "super_secret_key" {
-        return Err(AuthError::InvalidToken);
+        return Err(ApiError::AuthError(AuthError::InvalidToken));
     }
 
-    let token = encode_token(payload.client_id).map_err(|_| AuthError::TokenCreation)?;
+    let token = encode_token(payload.client_id).map_err(|_| ApiError::AuthError(AuthError::InvalidToken))?;
     Ok(Json(AuthBody::new(token)))
 }

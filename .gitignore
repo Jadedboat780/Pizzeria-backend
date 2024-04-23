@@ -1,5 +1,2 @@
 target
 .idea
-utils/.dockerignore
-utils/Dockerfile
-utils/docker-compose.yml

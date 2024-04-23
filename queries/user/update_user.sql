@@ -1,4 +1,4 @@
-UPDATE users
+UPDATE Users
 SET username   = COALESCE($1, username),
     email      = COALESCE($2, email),
     password   = COALESCE($3, password),

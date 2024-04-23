@@ -8,5 +8,5 @@ pub async fn hello_word() -> Json<String> {
 }
 
 pub async fn handler_404() -> ApiError {
-    ApiError::NotFound
+    ApiError::NotFound("Page not found".to_owned())
 }

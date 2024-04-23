@@ -1,3 +1,3 @@
 SELECT username, password
-FROM users
+FROM Users
 WHERE username = $1;

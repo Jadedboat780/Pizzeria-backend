@@ -1,18 +1,21 @@
-mod auth;
+
 mod endpoints;
-mod models;
-mod requests;
-mod user_query;
 mod middleware;
+mod models;
+mod queries;
+mod auth;
 
 use std::{sync::Arc, time::Duration};
 use tokio::net::TcpListener;
-use axum::{routing, Router, http::{self, Method}, middleware::from_fn};
+use axum::{
+    routing, Router, middleware::from_fn,
+    http::{Method, header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, ORIGIN}}
+};
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
 use tower_http::cors::{Any, CorsLayer};
 use endpoints::{
     hello_word, handler_404,
-    user::{new_user, patch_user, search_user_by_email},
+    user::router_user
 };
 use auth::authorize;
 use middleware::jwt::validate_jwt;
@@ -23,7 +26,7 @@ pub struct AppData {
     pub db: PgPool
 }
 
-async fn db_pool() -> Pool<Postgres> {
+async fn init_db_pool() -> Pool<Postgres> {
     let db_url = std::env::var("DATABASE_URL").expect("Error database connection error");
     PgPoolOptions::new()
         .max_connections(5)
@@ -36,39 +39,24 @@ async fn db_pool() -> Pool<Postgres> {
 async fn init_cors() -> CorsLayer {
     CorsLayer::new()
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::PATCH, Method::DELETE])
-        .allow_headers([http::header::CONTENT_TYPE])
+        .allow_headers([ORIGIN, AUTHORIZATION, ACCEPT, CONTENT_TYPE])
         .allow_origin(Any)
 }
 
 
 async fn init_router() -> Router {
-    let pool = db_pool().await;
+    let pool = init_db_pool().await;
     let state: AppState = Arc::new(AppData { db: pool });
     let cors = init_cors().await;
-    // let governor_config = Box::new(
-    //     GovernorConfigBuilder::default()
-    //         .per_second(1)
-    //         .burst_size(50)
-    //         .key_extractor(IpBasedKeyExtractor)
-    //         .finish()
-    //         .unwrap()
-    // );
-    // let governor_layer = GovernorLayer {
-    //     config: Box::leak(governor_config)
-    // };
+    let router_user = router_user(state.clone()).await;
 
     Router::new()
         .route("/", routing::get(hello_word))
-        .route("/users", routing::post(new_user))
-        .route("/users/:id", routing::patch(patch_user))
-        .route("/users/search/email", routing::post(search_user_by_email))
-        .route("/users/search/username", routing::post(search_user_by_email))
-        .with_state(state)
+        .nest("/user", router_user)
         .route_layer(from_fn(validate_jwt))
         .route("/authorize", routing::post(authorize))
         .fallback(handler_404)
         .layer(cors)
-        // .layer(governor_layer)
 }
 
 async fn init_tcp_listener() -> TcpListener {
@@ -80,10 +68,8 @@ async fn init_tcp_listener() -> TcpListener {
 }
 
 #[tokio::main]
-async fn main() {
-    dotenv::dotenv().ok();
-    let pool = db_pool().await;
-    sqlx::migrate!().run(&pool).await.unwrap();
+async fn main () {
+    dotenv::dotenv().ok();;
     let router = init_router().await;
     let listener = init_tcp_listener().await;
     axum::serve(listener, router).await.unwrap();

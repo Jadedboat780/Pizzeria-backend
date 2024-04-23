@@ -1,27 +1,23 @@
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
+    Json
 };
-use serde_json::{json, Value};
+use serde_json::json;
 
-pub type ApiResult = Result<ApiResponse, ApiError>;
-
-#[derive(Debug)]
-pub enum ApiResponse {
-    OK,
-    OKWithJSON(Json<Value>),
-    OkResponse(Response),
-    Created,
-}
+pub type ApiResult<T> = Result<T, ApiError>;
 
 #[derive(Debug)]
 pub enum ApiError {
     BadRequest,
     Forbidden,
-    // Unauthorised,
+    NotFound(String),
+    RequestTimeout,
     InternalServerError,
-    NotFound,
+    InternalServerErrorWithContext(String),
+    // NotImplemented,
+    // ServiceUnavailable,
+    AuthError(AuthError)
 }
 
 #[derive(Debug)]
@@ -29,46 +25,44 @@ pub enum AuthError {
     WrongCredentials,
     MissingCredentials,
     TokenCreation,
-    InvalidToken,
-}
-
-impl IntoResponse for ApiResponse {
-    fn into_response(self) -> Response {
-        match self {
-            Self::OK => (StatusCode::OK).into_response(),
-            Self::OKWithJSON(json) => (StatusCode::OK, json).into_response(),
-            Self::OkResponse(response) => (StatusCode::OK, response).into_response(),
-            Self::Created => (StatusCode::CREATED).into_response(),
-        }
-    }
+    InvalidToken
 }
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "hello"),
-            Self::Forbidden => (StatusCode::FORBIDDEN, "hello"),
-            Self::InternalServerError => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad request".to_owned()),
+            Self::Forbidden => (StatusCode::FORBIDDEN, "Forbidden".to_owned()),
+            Self::NotFound(err) => (StatusCode::NOT_FOUND, err),
+            Self::RequestTimeout => (StatusCode::REQUEST_TIMEOUT, "Request timeout".to_owned()),
+            Self::InternalServerError => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_owned()),
+            Self::InternalServerErrorWithContext(err) => (StatusCode::INTERNAL_SERVER_ERROR, err),
+
+            Self::AuthError(error_status) => {
+                match error_status {
+                    AuthError::WrongCredentials => (StatusCode::UNAUTHORIZED, "Wrong credentials".to_owned()),
+                    AuthError::MissingCredentials => (StatusCode::UNAUTHORIZED, "Missing credentials".to_owned()),
+                    AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation error".to_owned()),
+                    AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token".to_owned()),
+                }
             }
-            Self::NotFound => (StatusCode::NOT_FOUND, "Page not found"),
         };
 
         let body = Json(json!({"error": error_message}));
-        (status, body).into_response()
+        (status, body.to_owned()).into_response()
     }
 }
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            AuthError::WrongCredentials => (StatusCode::UNAUTHORIZED, "Wrong credentials"),
-            AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
-            AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation error"),
-            AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Invalid token"),
+        let (status, error_message) =  match self {
+            AuthError::WrongCredentials => (StatusCode::UNAUTHORIZED, "Wrong credentials".to_owned()),
+            AuthError::MissingCredentials => (StatusCode::UNAUTHORIZED, "Missing credentials".to_owned()),
+            AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation error".to_owned()),
+            AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token".to_owned()),
         };
 
         let body = Json(json!({"error": error_message}));
-        (status, body).into_response()
+        (status, body.to_owned()).into_response()
     }
 }

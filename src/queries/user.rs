@@ -1,10 +1,9 @@
 use sqlx::{postgres::PgQueryResult, query_file, query_file_as, PgPool};
 use utils::encryption::hash_password;
-use crate::requests::user::{CreateUser, GetUserByEmail, GetUserByUsername, UpdateUser};
+use super::PgResult;
+use crate::models::user::{CreateUser, GetUserByEmail, GetUserByUsername, UpdateUser};
 
-type PgResult = Result<PgQueryResult, sqlx::Error>;
-
-pub async fn create_user(new_user: CreateUser, pool: &PgPool) -> PgResult {
+pub async fn create_user(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQueryResult> {
     let hash = hash_password(new_user.password.as_str()).await;
     query_file!(
         "queries/user/create_user.sql",
@@ -16,8 +15,8 @@ pub async fn create_user(new_user: CreateUser, pool: &PgPool) -> PgResult {
         .await
 }
 
-pub async fn get_user_by_email(user_data: &GetUserByEmail, pool: &PgPool) -> Result<Option<GetUserByEmail>, sqlx::Error> {
-     query_file_as!(
+pub async fn get_user_by_email(user_data: &GetUserByEmail, pool: &PgPool) -> PgResult<Option<GetUserByEmail>> {
+    query_file_as!(
         GetUserByEmail,
         "queries/user/select_user_by_email.sql",
         user_data.email
@@ -26,7 +25,7 @@ pub async fn get_user_by_email(user_data: &GetUserByEmail, pool: &PgPool) -> Res
         .await
 }
 
-pub async fn get_user_by_username(user_data: &GetUserByUsername, pool: &PgPool) -> Result<Option<GetUserByUsername>, sqlx::Error> {
+pub async fn get_user_by_username(user_data: &GetUserByUsername, pool: &PgPool) -> PgResult<Option<GetUserByUsername>> {
     query_file_as!(
         GetUserByUsername,
         "queries/user/select_user_by_username.sql",
@@ -36,7 +35,7 @@ pub async fn get_user_by_username(user_data: &GetUserByUsername, pool: &PgPool) 
         .await
 }
 
-pub async fn update_user(id: i32, update_data: UpdateUser, pool: &PgPool) -> PgResult {
+pub async fn update_user(id: i32, update_data: UpdateUser, pool: &PgPool) -> PgResult<PgQueryResult> {
     query_file!(
         "queries/user/update_user.sql",
         update_data.username,
@@ -49,4 +48,14 @@ pub async fn update_user(id: i32, update_data: UpdateUser, pool: &PgPool) -> PgR
     )
         .execute(pool)
         .await
+}
+
+pub async fn delete_user(id: i32, pool: &PgPool) -> PgResult<PgQueryResult>  {
+    query_file!(
+        "queries/user/delete_user.sql",
+        id
+    )
+        .execute(pool)
+        .await
+
 }
