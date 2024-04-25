@@ -1,14 +1,27 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct User {
-    username: String,
-    email: String,
-    password: String,
-    address: Option<String>,
-    phone: Option<String>,
-    avatar_url: Option<String>
+#[derive(Debug, Serialize)]
+pub struct User {
+    pub id: i32,
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub address: Option<String>,
+    pub phone: Option<String>,
+    pub avatar_url: Option<String>
+}
+
+#[derive(Debug, Deserialize, FromRow)]
+pub struct CheckUserByEmail {
+    pub email: String,
+    pub password: String
+}
+
+#[derive(Debug, Deserialize, FromRow)]
+pub struct CheckUserByUsername {
+    pub username: String,
+    pub password: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -18,20 +31,18 @@ pub struct CreateUser {
     pub password: String
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
-pub struct GetUserByEmail {
-    pub email: String,
-    pub password: String
-}
-
-#[derive(Debug, Deserialize, FromRow)]
-pub struct GetUserByUsername {
+#[derive(Debug, Deserialize)]
+pub struct PutUser {
     pub username: String,
-    pub password: String
+    pub email: String,
+    pub password: String,
+    pub address: String,
+    pub phone: String,
+    pub avatar_url: String
 }
 
 #[derive(Debug, Deserialize)]
-pub struct UpdateUser {
+pub struct PatchUser {
     pub username: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,

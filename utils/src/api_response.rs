@@ -13,8 +13,7 @@ pub enum ApiError {
     Forbidden,
     NotFound(String),
     RequestTimeout,
-    InternalServerError,
-    InternalServerErrorWithContext(String),
+    InternalServerError(String),
     // NotImplemented,
     // ServiceUnavailable,
     AuthError(AuthError)
@@ -35,8 +34,7 @@ impl IntoResponse for ApiError {
             Self::Forbidden => (StatusCode::FORBIDDEN, "Forbidden".to_owned()),
             Self::NotFound(err) => (StatusCode::NOT_FOUND, err),
             Self::RequestTimeout => (StatusCode::REQUEST_TIMEOUT, "Request timeout".to_owned()),
-            Self::InternalServerError => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_owned()),
-            Self::InternalServerErrorWithContext(err) => (StatusCode::INTERNAL_SERVER_ERROR, err),
+            Self::InternalServerError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err),
 
             Self::AuthError(error_status) => {
                 match error_status {
