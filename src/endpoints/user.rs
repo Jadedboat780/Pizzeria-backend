@@ -11,16 +11,16 @@ use crate::queries::user::{self, select_user_by_email, insert_user, select_user_
 
 pub async fn router_user(state: AppState) -> Router {
     Router::new()
-        .route("/search/email", routing::get(get_user_by_email))
-        .route("/search/username", routing::get(get_user_by_username))
         .route("/", routing::post(post_user))
         .route("/:id", routing::get(get_user_by_id).put(put_user).patch(patch_user).delete(delete_user))
+        .route("/search/email", routing::get(get_user_by_email))
+        .route("/search/username", routing::get(get_user_by_username))
         .with_state(state)
 }
 
 async fn get_user_by_id(
     Path(id): Path<i32>,
-    State(state): State<AppState>,
+    State(state): State<AppState>
 ) -> ApiResult<Json<User>> {
     let result = select_user_by_id(id, &state.db)
         .await
@@ -78,24 +78,24 @@ async fn put_user(
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
-    Ok(StatusCode::NO_CONTENT)
+    Ok(StatusCode::CREATED)
 }
 
 async fn patch_user(
     Path(id): Path<i32>,
     State(state): State<AppState>,
-    Json(update_data): Json<PatchUser>,
+    Json(update_data): Json<PatchUser>
 ) -> ApiResult<StatusCode> {
     patch_update_user(id, update_data, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
-    Ok(StatusCode::NO_CONTENT)
+    Ok(StatusCode::CREATED)
 }
 
 async fn delete_user(
     Path(id): Path<i32>,
-    State(state): State<AppState>,
+    State(state): State<AppState>
 ) -> ApiResult<StatusCode> {
     user::delete_user(id, &state.db)
         .await

@@ -1,7 +1,7 @@
 use sqlx::{postgres::PgQueryResult, query_file, query_file_as, PgPool};
 use utils::encryption::hash_password;
 use super::PgResult;
-use crate::models::user::{CreateUser, CheckUserByEmail, CheckUserByUsername, PatchUser, User, PutUser};
+use crate::models::user::{User, CreateUser, CheckUserByEmail, CheckUserByUsername, PutUser, PatchUser};
 
 pub async fn select_user_by_id(id: i32, pool: &PgPool) -> PgResult<Option<User>> {
     query_file_as!(
@@ -82,5 +82,4 @@ pub async fn delete_user(id: i32, pool: &PgPool) -> PgResult<PgQueryResult>  {
     )
         .execute(pool)
         .await
-
 }

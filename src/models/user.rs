@@ -23,7 +23,7 @@ pub struct CheckUserByUsername {
     pub password: String
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CreateUser {
     pub username: String,
     pub email: String,

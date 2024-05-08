@@ -1,4 +1,3 @@
-
 mod endpoints;
 mod middleware;
 mod models;
@@ -14,8 +13,9 @@ use axum::{
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
 use tower_http::cors::{Any, CorsLayer};
 use endpoints::{
-    hello_word, handler_404,
-    user::router_user
+    hello_word, handler_404, get_file,
+    user::router_user,
+    pizza::router_pizza
 };
 use auth::authorize;
 use middleware::jwt::validate_jwt;
@@ -49,10 +49,13 @@ async fn init_router() -> Router {
     let state: AppState = Arc::new(AppData { db: pool });
     let cors = init_cors().await;
     let router_user = router_user(state.clone()).await;
+    let router_pizza = router_pizza(state.clone()).await;
 
     Router::new()
         .route("/", routing::get(hello_word))
         .nest("/user", router_user)
+        .nest("/pizza", router_pizza)
+        .route("/image/:name", routing::get(get_file))
         .route_layer(from_fn(validate_jwt))
         .route("/authorize", routing::post(authorize))
         .fallback(handler_404)
@@ -64,7 +67,7 @@ async fn init_tcp_listener() -> TcpListener {
     let port = std::env::var("PORT").expect("Port don`t set");
     let addr = format!("{}:{}", host, port);
 
-    TcpListener::bind(addr).await.expect("The address is busy")
+    TcpListener::bind(addr).await.expect("the address is busy")
 }
 
 #[tokio::main]

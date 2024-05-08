@@ -1,0 +1,2 @@
+DELETE FROM Pizzas
+WHERE id = $1;
