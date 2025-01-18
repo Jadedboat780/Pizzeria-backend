@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Users
     phone      VARCHAR(12)
 );
 
-CREATE TABLE IF NOT EXISTS Pizzas
+CREATE TABLE IF NOT EXISTS Pizza
 (
     id          SERIAL PRIMARY KEY,
     title       VARCHAR(50)   NOT NULL UNIQUE,
