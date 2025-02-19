@@ -1,12 +1,13 @@
 use axum::{extract::{Path, State}, Json, Router, routing, http::StatusCode};
 use serde_json::{json, Value};
+use crate::api_response::{ApiResult, ApiError};
 use utils::{
-    api_response::{ApiResult, ApiError},
     encryption::verify_password,
-    jwt::Claims,
+    // jwt::Claims,
 };
+use uuid::Uuid;
 use crate::AppState;
-use crate::models::user::{User, CheckUserByEmail, CheckUserByUsername, CreateUser, PutUser, PatchUser};
+use crate::models::user::{User, CheckUserByEmail, CheckUserByUsername, CreateUser, UpdateUser, UpdateUserPartial};
 use crate::queries::user::{self, select_user_by_email, insert_user, select_user_by_username, patch_update_user, select_user_by_id, put_update_user};
 
 pub async fn router_user(state: AppState) -> Router {
@@ -19,7 +20,7 @@ pub async fn router_user(state: AppState) -> Router {
 }
 
 async fn get_user_by_id(
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
     State(state): State<AppState>
 ) -> ApiResult<Json<User>> {
     let result = select_user_by_id(id, &state.db)
@@ -70,9 +71,9 @@ async fn post_user(
 }
 
 async fn put_user(
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
     State(state): State<AppState>,
-    Json(update_data): Json<PutUser>,
+    Json(update_data): Json<UpdateUser>,
 ) -> ApiResult<StatusCode> {
     put_update_user(id, update_data, &state.db)
         .await
@@ -82,9 +83,9 @@ async fn put_user(
 }
 
 async fn patch_user(
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
     State(state): State<AppState>,
-    Json(update_data): Json<PatchUser>
+    Json(update_data): Json<UpdateUserPartial>
 ) -> ApiResult<StatusCode> {
     patch_update_user(id, update_data, &state.db)
         .await
@@ -94,7 +95,7 @@ async fn patch_user(
 }
 
 async fn delete_user(
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
     State(state): State<AppState>
 ) -> ApiResult<StatusCode> {
     user::delete_user(id, &state.db)

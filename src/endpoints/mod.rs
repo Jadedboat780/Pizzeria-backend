@@ -6,12 +6,13 @@ use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::Json;
 use axum::response::Response;
+use serde_json::json;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
-use utils::api_response::ApiError;
+use crate::api_response::ApiError;
 
-pub async fn hello_word() -> Json<String> {
-    Json("Hello, World!".to_string())
+pub async fn ping() -> Json<serde_json::Value> {
+    Json(json!({"ping": "pong!"}))
 }
 
 pub async fn handler_404() -> ApiError {

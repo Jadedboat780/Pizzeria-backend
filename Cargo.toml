@@ -1,5 +1,5 @@
 [package]
-name = "pizzeria"
+name = "pizzeria-backend"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,10 +8,13 @@ axum = "0.7"
 dotenv = "0.15"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.135"
-sqlx = { version = "0.8.3", features = ["runtime-tokio", "postgres"] }
-utils = {path = "crates/utils" }
+sqlx = { version = "0.8.3", features = ["runtime-tokio", "postgres", "uuid"] }
 tokio = { version = "1.43", features = ["full"] }
 tower-http = { version = "0.6.2", features = ["cors"] }
+uuid = { version = "1.11.0", features = ["v4", "serde"] }
+
+utils = { path = "crates/utils" }
+#jwt = { path = "crates/jwt" }
 
 [dev-dependencies]
 axum-macros = "0.4.1"

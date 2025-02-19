@@ -1,9 +1,9 @@
 use axum::{extract::{Path, State}, Json, Router, routing, http::StatusCode};
 use axum::extract::Query;
-use utils::api_response::{ApiError, ApiResult};
+use crate::api_response::{ApiError, ApiResult};
 use crate::AppState;
 use crate::models::Pagination;
-use crate::models::pizza::{Pizza, CreatePizza, GetPizzas, PatchPizza, PutPizza};
+use crate::models::pizza::{Pizza, CreatePizza, GetPizzas, UpdatePizza, UpdatePizzaPartial};
 use crate::queries::pizza::{self, select_pizzas, select_pizza, insert_pizza, patch_update_pizza, put_update_pizza};
 
 pub async fn router_pizza(state: AppState) -> Router {
@@ -53,7 +53,7 @@ async fn post_pizza(
 async fn put_pizza(
     Path(id): Path<i32>,
     State(state): State<AppState>,
-    Json(update_data): Json<PutPizza>,
+    Json(update_data): Json<UpdatePizza>,
 ) -> ApiResult<StatusCode> {
     put_update_pizza(id, update_data, &state.db)
         .await
@@ -65,7 +65,7 @@ async fn put_pizza(
 async fn patch_pizza(
     Path(id): Path<i32>,
     State(state): State<AppState>,
-    Json(update_data): Json<PatchPizza>,
+    Json(update_data): Json<UpdatePizzaPartial>,
 ) -> ApiResult<StatusCode> {
     patch_update_pizza(id, update_data, &state.db)
         .await
