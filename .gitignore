@@ -1,3 +1,5 @@
-/target
-/.idea
-/.sqlx
+.idea/
+.sqlx/
+.vscode/
+target/
+.env
