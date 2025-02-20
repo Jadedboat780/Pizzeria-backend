@@ -1,4 +1,5 @@
-/examples_hurl
-/target
-README.md
+http/
+migrations/
+target/
 .gitignore
+README.md
