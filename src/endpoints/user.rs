@@ -1,19 +1,34 @@
-use axum::{extract::{Path, State}, Json, Router, routing, http::StatusCode};
+use crate::models::user::{
+    CheckUserByEmail, CheckUserByUsername, CreateUser, UpdateUser, UpdateUserPartial, User,
+};
+use crate::queries::user::{
+    self, insert_user, patch_update_user, put_update_user, select_user_by_email, select_user_by_id,
+    select_user_by_username,
+};
+use crate::AppState;
+use api_response::{ApiError, ApiResult};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    routing, Json, Router,
+};
 use serde_json::{json, Value};
-use crate::api_response::{ApiResult, ApiError};
 use utils::{
     encryption::verify_password,
     // jwt::Claims,
 };
 use uuid::Uuid;
-use crate::AppState;
-use crate::models::user::{User, CheckUserByEmail, CheckUserByUsername, CreateUser, UpdateUser, UpdateUserPartial};
-use crate::queries::user::{self, select_user_by_email, insert_user, select_user_by_username, patch_update_user, select_user_by_id, put_update_user};
 
 pub async fn router_user(state: AppState) -> Router {
     Router::new()
         .route("/", routing::post(post_user))
-        .route("/:id", routing::get(get_user_by_id).put(put_user).patch(patch_user).delete(delete_user))
+        .route(
+            "/{id}",
+            routing::get(get_user_by_id)
+                .put(put_user)
+                .patch(patch_user)
+                .delete(delete_user),
+        )
         .route("/search/email", routing::get(get_user_by_email))
         .route("/search/username", routing::get(get_user_by_username))
         .with_state(state)
@@ -21,7 +36,7 @@ pub async fn router_user(state: AppState) -> Router {
 
 async fn get_user_by_id(
     Path(id): Path<Uuid>,
-    State(state): State<AppState>
+    State(state): State<AppState>,
 ) -> ApiResult<Json<User>> {
     let result = select_user_by_id(id, &state.db)
         .await
@@ -85,7 +100,7 @@ async fn put_user(
 async fn patch_user(
     Path(id): Path<Uuid>,
     State(state): State<AppState>,
-    Json(update_data): Json<UpdateUserPartial>
+    Json(update_data): Json<UpdateUserPartial>,
 ) -> ApiResult<StatusCode> {
     patch_update_user(id, update_data, &state.db)
         .await
@@ -94,10 +109,7 @@ async fn patch_user(
     Ok(StatusCode::CREATED)
 }
 
-async fn delete_user(
-    Path(id): Path<Uuid>,
-    State(state): State<AppState>
-) -> ApiResult<StatusCode> {
+async fn delete_user(Path(id): Path<Uuid>, State(state): State<AppState>) -> ApiResult<StatusCode> {
     user::delete_user(id, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;

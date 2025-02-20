@@ -1,9 +1,9 @@
+use super::PgResult;
 use crate::models::{
-    pizza::{Pizza, GetPizzas, CreatePizza, UpdatePizza, UpdatePizzaPartial},
+    pizza::{CreatePizza, GetPizzas, Pizza, UpdatePizza, UpdatePizzaPartial},
     Pagination,
 };
-use super::PgResult;
-use sqlx::{postgres::PgQueryResult, PgPool, query, query_as};
+use sqlx::{postgres::PgQueryResult, query, query_as, PgPool};
 
 pub async fn select_pizzas(pagination: Pagination, pool: &PgPool) -> PgResult<GetPizzas> {
     let result = GetPizzas {

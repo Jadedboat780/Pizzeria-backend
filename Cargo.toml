@@ -1,10 +1,17 @@
-[package]
-name = "pizzeria-backend"
-version = "0.1.0"
+[workspace]
+resolver = "2"
+members = [
+    "crates/api-response",
+    "crates/jwt",
+    "crates/utils"
+]
+
+[workspace.package]
 edition = "2021"
 
-[dependencies]
-axum = "0.7"
+[workspace.dependencies]
+axum = { version = "0.8.1", features = ["macros"] }
+axum-extra = { version = "0.10.0", features = ["typed-header"] }
 dotenv = "0.15"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.135"
@@ -12,12 +19,34 @@ sqlx = { version = "0.8.3", features = ["runtime-tokio", "postgres", "uuid"] }
 tokio = { version = "1.43", features = ["full"] }
 tower-http = { version = "0.6.2", features = ["cors"] }
 uuid = { version = "1.11.0", features = ["v4", "serde"] }
+jsonwebtoken = "9.3.1"
+chrono = "0.4.39"
 
+api-response = { path = "crates/api-response" }
 utils = { path = "crates/utils" }
-#jwt = { path = "crates/jwt" }
+jwt = { path = "crates/jwt" }
 
-[dev-dependencies]
-axum-macros = "0.4.1"
+[package]
+edition.workspace = true
+name = "pizzeria-backend"
+
+#[[bin]]
+#
+#path = "src/main.rs"
+
+[dependencies]
+axum.workspace = true
+dotenv.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tower-http.workspace = true
+uuid.workspace = true
+api-response.workspace = true
+utils.workspace = true
+jwt.workspace = true
+jsonwebtoken.workspace = true
 
 [profile.release]
 opt-level = 3

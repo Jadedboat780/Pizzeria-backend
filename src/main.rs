@@ -1,9 +1,9 @@
-use pizzeria_backend::{init_router, init_tcp_listener};
+use pizzeria_backend::App;
 
 #[tokio::main]
-async fn main () {
+async fn main() {
     dotenv::dotenv().ok();
-    let router = init_router().await;
-    let listener = init_tcp_listener().await;
-    axum::serve(listener, router).await.unwrap();
+
+    let app = App::new().await;
+    app.run().await
 }

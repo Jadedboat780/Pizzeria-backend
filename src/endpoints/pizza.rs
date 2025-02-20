@@ -1,36 +1,43 @@
-use axum::{extract::{Path, State}, Json, Router, routing, http::StatusCode};
-use axum::extract::Query;
-use crate::api_response::{ApiError, ApiResult};
-use crate::AppState;
+use crate::models::pizza::{CreatePizza, GetPizzas, Pizza, UpdatePizza, UpdatePizzaPartial};
 use crate::models::Pagination;
-use crate::models::pizza::{Pizza, CreatePizza, GetPizzas, UpdatePizza, UpdatePizzaPartial};
-use crate::queries::pizza::{self, select_pizzas, select_pizza, insert_pizza, patch_update_pizza, put_update_pizza};
+use crate::queries::pizza::{
+    self, insert_pizza, patch_update_pizza, put_update_pizza, select_pizza, select_pizzas,
+};
+use crate::AppState;
+use api_response::{ApiError, ApiResult};
+use axum::extract::Query;
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    routing, Json, Router,
+};
 
 pub async fn router_pizza(state: AppState) -> Router {
     Router::new()
         .route("/", routing::get(get_pizzas).post(post_pizza))
-        .route("/:id", routing::get(get_pizza).put(put_pizza).patch(patch_pizza).delete(delete_pizza))
+        .route(
+            "/{id}",
+            routing::get(get_pizza)
+                .put(put_pizza)
+                .patch(patch_pizza)
+                .delete(delete_pizza),
+        )
         .with_state(state)
 }
 
 async fn get_pizzas(
-    pagination: Option<Query<Pagination>>,
+    pagination: Query<Pagination>,
     State(state): State<AppState>,
 ) -> ApiResult<Json<GetPizzas>> {
-    let Query(pagination) = pagination.unwrap_or_default();
-    println!("{:?}", pagination);
+    let pagination = pagination.0;
     let result = select_pizzas(pagination, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
     Ok(Json(result))
-
 }
 
-async fn get_pizza(
-    Path(id): Path<i32>,
-    State(state): State<AppState>,
-) -> ApiResult<Json<Pizza>> {
+async fn get_pizza(Path(id): Path<i32>, State(state): State<AppState>) -> ApiResult<Json<Pizza>> {
     let result = select_pizza(id, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?
@@ -74,10 +81,7 @@ async fn patch_pizza(
     Ok(StatusCode::NO_CONTENT)
 }
 
-async fn delete_pizza(
-    Path(id): Path<i32>,
-    State(state): State<AppState>,
-) -> ApiResult<StatusCode> {
+async fn delete_pizza(Path(id): Path<i32>, State(state): State<AppState>) -> ApiResult<StatusCode> {
     pizza::delete_pizza(id, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;

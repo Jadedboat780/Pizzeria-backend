@@ -6,7 +6,7 @@
 // };
 // use utils::{
 //     // jwt::JWT,
-//     api_response::AuthError
+//     api-response::AuthError
 // };
 //
 // pub async fn validate_jwt(

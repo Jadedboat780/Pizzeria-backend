@@ -1,8 +1,8 @@
 use super::PgResult;
 use crate::models::user::{
-    User, CheckUserByEmail, CheckUserByUsername, CreateUser, UpdateUser, UpdateUserPartial,
+    CheckUserByEmail, CheckUserByUsername, CreateUser, UpdateUser, UpdateUserPartial, User,
 };
-use sqlx::{postgres::PgQueryResult, PgPool, query, query_as};
+use sqlx::{postgres::PgQueryResult, query, query_as, PgPool};
 use utils::encryption::hash_password;
 use uuid::Uuid;
 
