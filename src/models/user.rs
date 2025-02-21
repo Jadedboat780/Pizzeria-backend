@@ -12,14 +12,8 @@ pub struct User {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct CheckUserByEmail {
+pub struct GetUserByEmail {
     pub email: String,
-    pub password: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct CheckUserByUsername {
-    pub username: String,
     pub password: String,
 }
 
