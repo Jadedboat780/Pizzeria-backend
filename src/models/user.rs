@@ -6,20 +6,15 @@ pub struct User {
     pub id: Uuid,
     pub username: String,
     pub email: String,
+    #[serde(skip_serializing)]
     pub password: String,
     pub address: Option<String>,
     pub phone: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct CheckUserByEmail {
+pub struct GetUserByEmail {
     pub email: String,
-    pub password: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct CheckUserByUsername {
-    pub username: String,
     pub password: String,
 }
 

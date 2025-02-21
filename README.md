@@ -1,9 +1,16 @@
-# Бэкенд для сайта пиццерии (находится в разработке)
+# Backend for pizzeria
+Stack: axum, serde, sqlx, tokio
 
-## Что необходимо реализовать:
-1. [ ] подключить [tracing](https://github.com/tokio-rs/tracing) с Datadog
-2. [ ] подключить [Meilisearch](https://www.meilisearch.com/)
-3. [ ] написать swagger документацию
-4. [ ] реализовать чат для общения с тех. поддержкой с помощью WebSocket
-5. [ ] добавить кэш прослойку для некоторых запросов в базу анных
-6. [ ] написать тесты и бечмарки
+## Run project
+```shell
+# Rename .env.example
+mv .env.example .env
+
+# Running docker compose
+docker compose up -d
+```
+
+## Ping server
+```shell
+curl http://127.0.0.1:3000/ping
+```
