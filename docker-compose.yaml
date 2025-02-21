@@ -1,11 +1,11 @@
 services:
-#  server:
-#    build:
-#      context: .
-#    ports:
-#      - "3000:3000"
-#    depends_on:
-#      - db
+  server:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
 
   db:
     container_name: db
@@ -15,7 +15,7 @@ services:
       - "5433:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./migrations/20240321181200_init.up.sql:/docker-entrypoint-initdb.d/init.
+      - ./migrations/20240321181200_init.up.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - .env
 

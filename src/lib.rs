@@ -1,7 +1,7 @@
+mod crud;
 mod endpoints;
 mod middleware;
 mod models;
-mod queries;
 
 use axum::{
     http::{
@@ -11,11 +11,11 @@ use axum::{
     middleware::from_fn,
     routing, Router,
 };
-use endpoints::{get_file, handler_404, ping, pizza::router_pizza, user::router_user};
+use endpoints::{handler_404, ping, pizza, user};
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
 use std::{sync::Arc, time::Duration};
 use tokio::net::TcpListener;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 // use auth::authorize;
 // use middleware::jwt::validate_jwt;
 
@@ -40,6 +40,7 @@ impl App {
 
     async fn init_db_pool() -> Pool<Postgres> {
         let db_url = std::env::var("DATABASE_URL").expect("Error database connection error");
+
         PgPoolOptions::new()
             .max_connections(5)
             .acquire_timeout(Duration::from_secs(3))
@@ -49,6 +50,8 @@ impl App {
     }
 
     async fn init_cors() -> CorsLayer {
+        let origins = ["http://localhost:3000".parse().unwrap()];
+
         CorsLayer::new()
             .allow_methods([
                 Method::GET,
@@ -58,21 +61,21 @@ impl App {
                 Method::DELETE,
             ])
             .allow_headers([ORIGIN, AUTHORIZATION, ACCEPT, CONTENT_TYPE])
-            .allow_origin(Any)
+            .allow_origin(origins)
     }
 
     pub async fn init_router() -> Router {
         let pool = Self::init_db_pool().await;
         let state: AppState = Arc::new(AppData { db: pool });
         let cors = Self::init_cors().await;
-        let router_user = router_user(state.clone()).await;
-        let router_pizza = router_pizza(state.clone()).await;
+        let user_router = user::router(state.clone()).await;
+        let pizza_router = pizza::router(state.clone()).await;
 
         Router::new()
             .route("/ping", routing::get(ping))
-            .nest("/user", router_user)
-            .nest("/pizza", router_pizza)
-            .route("/image/{name}", routing::get(get_file))
+            .nest("/user", user_router)
+            .nest("/pizza", pizza_router)
+            // .route("/image/{name}", routing::get(get_file))
             // .route_layer(from_fn(validate_jwt))
             // .route("/authorize", routing::post(authorize))
             .fallback(handler_404)
