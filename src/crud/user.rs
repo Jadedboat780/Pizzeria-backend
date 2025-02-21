@@ -1,7 +1,5 @@
 use super::PgResult;
-use crate::models::user::{
-    CheckUserByEmail, CheckUserByUsername, CreateUser, UpdateUser, UpdateUserPartial, User,
-};
+use crate::models::user::{CreateUser, UpdateUser, UpdateUserPartial, User};
 use sqlx::{postgres::PgQueryResult, query, query_as, PgPool};
 use utils::encryption::hash_password;
 use uuid::Uuid;
@@ -12,30 +10,10 @@ pub async fn select_user_by_id(id: Uuid, pool: &PgPool) -> PgResult<Option<User>
         .await
 }
 
-pub async fn select_user_by_email(
-    user_data: &CheckUserByEmail,
-    pool: &PgPool,
-) -> PgResult<Option<User>> {
-    query_as!(
-        User,
-        "SELECT * FROM Users WHERE email = $1;",
-        user_data.email
-    )
-    .fetch_optional(pool)
-    .await
-}
-
-pub async fn select_user_by_username(
-    user_data: &CheckUserByUsername,
-    pool: &PgPool,
-) -> PgResult<Option<User>> {
-    query_as!(
-        User,
-        "SELECT * FROM Users WHERE username = $1;",
-        user_data.username
-    )
-    .fetch_optional(pool)
-    .await
+pub async fn select_user_by_email(email: &str, pool: &PgPool) -> PgResult<Option<User>> {
+    query_as!(User, "SELECT * FROM Users WHERE email = $1;", email)
+        .fetch_optional(pool)
+        .await
 }
 
 pub async fn insert_user(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQueryResult> {
@@ -50,7 +28,7 @@ pub async fn insert_user(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQuer
     .await
 }
 
-pub async fn put_update_user(
+pub async fn update_user(
     id: Uuid,
     update_data: UpdateUser,
     pool: &PgPool,
@@ -74,7 +52,7 @@ pub async fn put_update_user(
     .await
 }
 
-pub async fn patch_update_user(
+pub async fn update_user_partial(
     id: Uuid,
     update_data: UpdateUserPartial,
     pool: &PgPool,

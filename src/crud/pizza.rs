@@ -37,7 +37,7 @@ pub async fn insert_pizza(new_pizza: CreatePizza, pool: &PgPool) -> PgResult<PgQ
     .await
 }
 
-pub async fn put_update_pizza(
+pub async fn update_pizza(
     id: i32,
     update_data: UpdatePizza,
     pool: &PgPool,
@@ -57,7 +57,7 @@ pub async fn put_update_pizza(
     .await
 }
 
-pub async fn patch_update_pizza(
+pub async fn update_pizza_partial(
     id: i32,
     update_data: UpdatePizzaPartial,
     pool: &PgPool,
