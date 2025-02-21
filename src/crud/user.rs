@@ -4,19 +4,19 @@ use sqlx::{postgres::PgQueryResult, query, query_as, PgPool};
 use utils::encryption::hash_password;
 use uuid::Uuid;
 
-pub async fn select_user_by_id(id: Uuid, pool: &PgPool) -> PgResult<Option<User>> {
+pub async fn select_by_id(id: Uuid, pool: &PgPool) -> PgResult<Option<User>> {
     query_as!(User, "SELECT * FROM Users WHERE id = $1;", id)
         .fetch_optional(pool)
         .await
 }
 
-pub async fn select_user_by_email(email: &str, pool: &PgPool) -> PgResult<Option<User>> {
+pub async fn select_by_email(email: &str, pool: &PgPool) -> PgResult<Option<User>> {
     query_as!(User, "SELECT * FROM Users WHERE email = $1;", email)
         .fetch_optional(pool)
         .await
 }
 
-pub async fn insert_user(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQueryResult> {
+pub async fn insert(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQueryResult> {
     let hash = hash_password(new_user.password.as_str()).await;
     query!(
         "INSERT INTO Users (username, email, password) VALUES ($1, $2, $3);",
@@ -28,7 +28,7 @@ pub async fn insert_user(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQuer
     .await
 }
 
-pub async fn update_user(
+pub async fn update(
     id: Uuid,
     update_data: UpdateUser,
     pool: &PgPool,
@@ -52,7 +52,7 @@ pub async fn update_user(
     .await
 }
 
-pub async fn update_user_partial(
+pub async fn update_partial(
     id: Uuid,
     update_data: UpdateUserPartial,
     pool: &PgPool,
@@ -76,7 +76,7 @@ pub async fn update_user_partial(
     .await
 }
 
-pub async fn delete_user(id: Uuid, pool: &PgPool) -> PgResult<PgQueryResult> {
+pub async fn delete(id: Uuid, pool: &PgPool) -> PgResult<PgQueryResult> {
     query!("DELETE FROM Users WHERE id = $1;", id)
         .execute(pool)
         .await

@@ -1,8 +1,6 @@
+use crate::crud::pizza as pizza_crud;
 use crate::models::pizza::{CreatePizza, GetPizzas, Pizza, UpdatePizza, UpdatePizzaPartial};
 use crate::models::Pagination;
-use crate::queries::pizza::{
-    self, insert_pizza, patch_update_pizza, put_update_pizza, select_pizza, select_pizzas,
-};
 use crate::AppState;
 use api_response::{ApiError, ApiResult};
 use axum::extract::Query;
@@ -12,7 +10,7 @@ use axum::{
     routing, Json, Router,
 };
 
-pub async fn router_pizza(state: AppState) -> Router {
+pub async fn router(state: AppState) -> Router {
     Router::new()
         .route("/", routing::get(get_pizzas).post(post_pizza))
         .route(
@@ -30,7 +28,7 @@ async fn get_pizzas(
     State(state): State<AppState>,
 ) -> ApiResult<Json<GetPizzas>> {
     let pagination = pagination.0;
-    let result = select_pizzas(pagination, &state.db)
+    let result = pizza_crud::select_many(pagination, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
@@ -38,7 +36,7 @@ async fn get_pizzas(
 }
 
 async fn get_pizza(Path(id): Path<i32>, State(state): State<AppState>) -> ApiResult<Json<Pizza>> {
-    let result = select_pizza(id, &state.db)
+    let result = pizza_crud::select(id, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?
         .ok_or(ApiError::Forbidden)?;
@@ -50,7 +48,7 @@ async fn post_pizza(
     State(state): State<AppState>,
     Json(json): Json<CreatePizza>,
 ) -> ApiResult<StatusCode> {
-    insert_pizza(json, &state.db)
+    pizza_crud::insert(json, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
@@ -62,7 +60,7 @@ async fn put_pizza(
     State(state): State<AppState>,
     Json(update_data): Json<UpdatePizza>,
 ) -> ApiResult<StatusCode> {
-    put_update_pizza(id, update_data, &state.db)
+    pizza_crud::update(id, update_data, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
@@ -74,7 +72,7 @@ async fn patch_pizza(
     State(state): State<AppState>,
     Json(update_data): Json<UpdatePizzaPartial>,
 ) -> ApiResult<StatusCode> {
-    patch_update_pizza(id, update_data, &state.db)
+    pizza_crud::update_partial(id, update_data, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 
@@ -82,7 +80,7 @@ async fn patch_pizza(
 }
 
 async fn delete_pizza(Path(id): Path<i32>, State(state): State<AppState>) -> ApiResult<StatusCode> {
-    pizza::delete_pizza(id, &state.db)
+    pizza_crud::delete(id, &state.db)
         .await
         .map_err(|err| ApiError::InternalServerError(err.to_string()))?;
 

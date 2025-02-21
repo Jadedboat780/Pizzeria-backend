@@ -5,7 +5,7 @@ use crate::models::{
 };
 use sqlx::{postgres::PgQueryResult, query, query_as, PgPool};
 
-pub async fn select_pizzas(pagination: Pagination, pool: &PgPool) -> PgResult<GetPizzas> {
+pub async fn select_many(pagination: Pagination, pool: &PgPool) -> PgResult<GetPizzas> {
     let result = GetPizzas {
         pizzas: query_as!(
             Pizza,
@@ -20,13 +20,13 @@ pub async fn select_pizzas(pagination: Pagination, pool: &PgPool) -> PgResult<Ge
     Ok(result)
 }
 
-pub async fn select_pizza(id: i32, pool: &PgPool) -> PgResult<Option<Pizza>> {
+pub async fn select(id: i32, pool: &PgPool) -> PgResult<Option<Pizza>> {
     query_as!(Pizza, "SELECT * FROM Pizza WHERE id = $1;", id)
         .fetch_optional(pool)
         .await
 }
 
-pub async fn insert_pizza(new_pizza: CreatePizza, pool: &PgPool) -> PgResult<PgQueryResult> {
+pub async fn insert(new_pizza: CreatePizza, pool: &PgPool) -> PgResult<PgQueryResult> {
     query!(
         "INSERT INTO Pizza (title, ingredients, price) VALUES ($1, $2, $3);",
         new_pizza.title,
@@ -37,7 +37,7 @@ pub async fn insert_pizza(new_pizza: CreatePizza, pool: &PgPool) -> PgResult<PgQ
     .await
 }
 
-pub async fn update_pizza(
+pub async fn update(
     id: i32,
     update_data: UpdatePizza,
     pool: &PgPool,
@@ -57,7 +57,7 @@ pub async fn update_pizza(
     .await
 }
 
-pub async fn update_pizza_partial(
+pub async fn update_partial(
     id: i32,
     update_data: UpdatePizzaPartial,
     pool: &PgPool,
@@ -77,7 +77,7 @@ pub async fn update_pizza_partial(
     .await
 }
 
-pub async fn delete_pizza(id: i32, pool: &PgPool) -> PgResult<PgQueryResult> {
+pub async fn delete(id: i32, pool: &PgPool) -> PgResult<PgQueryResult> {
     query!("DELETE FROM Pizza WHERE id = $1;", id)
         .execute(pool)
         .await
