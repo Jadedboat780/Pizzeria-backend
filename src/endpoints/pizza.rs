@@ -1,6 +1,8 @@
 use crate::crud::pizza as pizza_crud;
-use crate::models::pizza::{CreatePizza, GetPizzas, Pizza, UpdatePizza, UpdatePizzaPartial};
-use crate::models::Pagination;
+use crate::models::{
+    pizza::{CreatePizza, GetPizzas, Pizza, UpdatePizza, UpdatePizzaPartial},
+    Pagination,
+};
 use crate::AppState;
 use api_response::{ApiError, ApiResult};
 use axum::extract::Query;

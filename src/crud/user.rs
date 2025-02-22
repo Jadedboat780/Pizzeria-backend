@@ -28,11 +28,7 @@ pub async fn insert(new_user: CreateUser, pool: &PgPool) -> PgResult<PgQueryResu
     .await
 }
 
-pub async fn update(
-    id: Uuid,
-    update_data: UpdateUser,
-    pool: &PgPool,
-) -> PgResult<PgQueryResult> {
+pub async fn update(id: Uuid, update_data: UpdateUser, pool: &PgPool) -> PgResult<PgQueryResult> {
     query!(
         "UPDATE Users
         SET username = $1,

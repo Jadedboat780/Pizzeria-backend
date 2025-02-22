@@ -7,7 +7,6 @@ use axum::{
     http::StatusCode,
     routing, Json, Router,
 };
-use serde_json::json;
 use utils::encryption::verify_password;
 use uuid::Uuid;
 

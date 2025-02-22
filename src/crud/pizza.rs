@@ -37,11 +37,7 @@ pub async fn insert(new_pizza: CreatePizza, pool: &PgPool) -> PgResult<PgQueryRe
     .await
 }
 
-pub async fn update(
-    id: i32,
-    update_data: UpdatePizza,
-    pool: &PgPool,
-) -> PgResult<PgQueryResult> {
+pub async fn update(id: i32, update_data: UpdatePizza, pool: &PgPool) -> PgResult<PgQueryResult> {
     query!(
         "UPDATE Pizza
         SET title = $1,
