@@ -1,5 +1,5 @@
-use super::error::AuthError;
 use super::key::KEYS;
+use api_response::AuthError;
 use axum::{extract::FromRequestParts, http::request::Parts, RequestPartsExt};
 use axum_extra::{
     headers::{authorization::Bearer, Authorization},
@@ -50,6 +50,6 @@ impl AuthBody {
 
 #[derive(Deserialize)]
 pub struct AuthPayload {
-    pub username: String,
+    pub email: String,
     pub password: String,
 }

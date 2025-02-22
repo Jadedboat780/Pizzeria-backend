@@ -11,13 +11,12 @@ use axum::{
     middleware::from_fn,
     routing, Router,
 };
-use endpoints::{handler_404, ping, pizza, user};
+use endpoints::{auth, handler_404, ping, pizza, user};
+use middleware::jwt::validate_jwt;
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
 use std::{sync::Arc, time::Duration};
 use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
-// use auth::authorize;
-// use middleware::jwt::validate_jwt;
 
 pub struct AppData {
     pub db: PgPool,
@@ -68,16 +67,17 @@ impl App {
         let pool = Self::init_db_pool().await;
         let state: AppState = Arc::new(AppData { db: pool });
         let cors = Self::init_cors().await;
+
         let user_router = user::router(state.clone()).await;
         let pizza_router = pizza::router(state.clone()).await;
+        let auth_router = auth::router(state.clone()).await;
 
         Router::new()
             .route("/ping", routing::get(ping))
             .nest("/user", user_router)
             .nest("/pizza", pizza_router)
-            // .route("/image/{name}", routing::get(get_file))
-            // .route_layer(from_fn(validate_jwt))
-            // .route("/authorize", routing::post(authorize))
+            .route_layer(from_fn(validate_jwt))
+            .nest("/authorize", auth_router)
             .fallback(handler_404)
             .layer(cors)
     }
