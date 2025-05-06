@@ -16,7 +16,8 @@ use middleware::jwt::validate_jwt;
 use sqlx::{postgres::PgPoolOptions, PgPool, Pool, Postgres};
 use std::{sync::Arc, time::Duration};
 use tokio::net::TcpListener;
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
+use tracing::Level;
 
 pub struct AppData {
     pub db: PgPool,
@@ -73,13 +74,17 @@ impl App {
         let auth_router = auth::router(state.clone()).await;
 
         Router::new()
-            .route("/ping", routing::get(ping))
             .nest("/user", user_router)
             .nest("/pizza", pizza_router)
-            .route_layer(from_fn(validate_jwt))
+            // .route_layer(from_fn(validate_jwt))
             .nest("/authorize", auth_router)
+            .route("/ping", routing::get(ping))
             .fallback(handler_404)
             .layer(cors)
+            .layer((
+                TraceLayer::new_for_http(),
+                TimeoutLayer::new(Duration::from_secs(5)),
+            ))
     }
 
     pub async fn init_tcp_listener() -> TcpListener {
@@ -90,7 +95,17 @@ impl App {
         TcpListener::bind(addr).await.expect("the address is busy")
     }
 
+    fn init_tracing(&self, level: Level) {
+        tracing_subscriber::fmt()
+            .with_max_level(level)
+            .compact()
+            .init();
+    }
+
     pub async fn run(self) {
+        self.init_tracing(Level::DEBUG);
+        tracing::info!("listening on {}", self.listener.local_addr().unwrap());
+
         axum::serve(self.listener, self.router).await.unwrap()
     }
 }

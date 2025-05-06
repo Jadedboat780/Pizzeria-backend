@@ -47,7 +47,7 @@ async fn get_user_by_email(
 
     match verify_password(&user_data.password, &user.password).await {
         true => Ok(Json(user)),
-        false => Err(ApiError::NotFound("User not found".to_owned())),
+        false => Err(ApiError::NotFound),
     }
 }
 

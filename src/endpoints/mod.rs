@@ -11,5 +11,5 @@ pub async fn ping() -> Json<serde_json::Value> {
 }
 
 pub async fn handler_404() -> ApiError {
-    ApiError::NotFound("Page not found".to_owned())
+    ApiError::NotFound
 }
